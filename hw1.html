@@ -59,8 +59,8 @@ function init()
   // add vertices
 	geometry.vertices.push(
     new THREE.Vector3(  0, 0,   0 ),
-    new THREE.Vector3( 18, 0,   0 ),
-    new THREE.Vector3(  0, 0, 7.5 )
+    new THREE.Vector3(  0, 0,  18 ),
+    new THREE.Vector3(  7.5, 0, 0 )
   );
   
   // add faces
@@ -79,9 +79,9 @@ function init()
   
 	var geometry2 = new THREE.Geometry();
 	geometry2.vertices.push(
-    new THREE.Vector3(    0,  7.2, 3.75 ),
-    new THREE.Vector3(   18,    0,   0  ),
-    new THREE.Vector3(    0,    0,  7.5 )
+    new THREE.Vector3(   3.75,  7.2,  0 ),
+    new THREE.Vector3(    0,    0,   18 ),
+    new THREE.Vector3(    7.5,    0,  0 )
   );
   
 	geometry2.faces.push (new THREE.Face3(0,1,2));
@@ -97,9 +97,9 @@ function init()
 
 	var geometry3 = new THREE.Geometry();
 	geometry3.vertices.push(
-    new THREE.Vector3(    0,  7.2,   3.75 ),
-    new THREE.Vector3(   18,    0,     0  ),
-    new THREE.Vector3(    0,    0,     0 )
+    new THREE.Vector3(    3.75,  7.2,   0 ),
+    new THREE.Vector3(     0,     0,    18),
+    new THREE.Vector3(     0,     0,    0 )
   );
   
 	geometry3.faces.push (new THREE.Face3(0,1,2));
@@ -114,9 +114,9 @@ function init()
   
 	var geometry4 = new THREE.Geometry();
 	geometry4.vertices.push(
-    new THREE.Vector3(    0,  7.2,   3.75 ),
-    new THREE.Vector3(    0,    0,    7.5 ),
-    new THREE.Vector3(    0,    0,     0 )
+    new THREE.Vector3(    3.75,  7.2,   0 ),
+    new THREE.Vector3(    7.5,    0,    0 ),
+    new THREE.Vector3(    0,      0,    0 )
   );
   
 	geometry4.faces.push (new THREE.Face3(0,1,2));
@@ -163,7 +163,7 @@ function animate()
 {
 	var dt = clock.getDelta();
 	
-	var dir = new THREE.Vector3(0,0,-1);
+	var dir = new THREE.Vector3(1,0,0);
 	
 	//dir.multiplyScalar (dt*speed);
 	//dir.applyAxisAngle (new THREE.Vector3(0,1,0), angle);
@@ -172,7 +172,7 @@ function animate()
 
 	
 	if (boat != undefined) { 
-		boat.scale.set (3,3,3);
+		boat.scale.set (1,1,1);
 		boat.position.set (pos.x, pos.y, pos.z);
 		boat.rotation.y = angle+Math.PI/2;
 	}
