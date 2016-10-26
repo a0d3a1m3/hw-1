@@ -58,9 +58,9 @@ function init()
 	var geometry = new THREE.Geometry();
   // add vertices
 	geometry.vertices.push(
-    new THREE.Vector3(  0, 0,   0 ),
-    new THREE.Vector3(  0, 0,  18 ),
-    new THREE.Vector3(  -7.5, 0, 0 )
+    new THREE.Vector3(   3.75,  0,   0  ),
+    new THREE.Vector3(      0,  0,   18 ),
+    new THREE.Vector3(  -3.75,  0,   0  )
   );
   
   // add faces
@@ -79,9 +79,9 @@ function init()
   
 	var geometry2 = new THREE.Geometry();
 	geometry2.vertices.push(
-    new THREE.Vector3(   -3.75,  7.2,  0 ),
-    new THREE.Vector3(    0,    0,   18 ),
-    new THREE.Vector3(    -7.5,    0,  0 )
+    new THREE.Vector3(      0,  7.2,   0 ),
+    new THREE.Vector3(      0,    0,  18 ),
+    new THREE.Vector3(   3.75,    0,   0 )
   );
   
 	geometry2.faces.push (new THREE.Face3(0,1,2));
@@ -97,9 +97,9 @@ function init()
 
 	var geometry3 = new THREE.Geometry();
 	geometry3.vertices.push(
-    new THREE.Vector3(    -3.75,  7.2,   0 ),
-    new THREE.Vector3(     0,     0,    18),
-    new THREE.Vector3(     0,     0,    0 )
+    new THREE.Vector3(      0,   7.2,    0  ),
+    new THREE.Vector3(      0,     0,    18 ),
+    new THREE.Vector3(  -3.75,     0,     0 )
   );
   
 	geometry3.faces.push (new THREE.Face3(0,1,2));
@@ -114,9 +114,9 @@ function init()
   
 	var geometry4 = new THREE.Geometry();
 	geometry4.vertices.push(
-    new THREE.Vector3(    -3.75,  7.2,   0 ),
-    new THREE.Vector3(    -7.5,    0,    0 ),
-    new THREE.Vector3(    0,      0,    0 )
+    new THREE.Vector3(        0,  7.2,   0 ),
+    new THREE.Vector3(     3.75,    0,   0 ),
+    new THREE.Vector3(    -3.75,    0,   0 )
   );
   
 	geometry4.faces.push (new THREE.Face3(0,1,2));
@@ -193,12 +193,20 @@ function update()
 {
 	controls.update();
 	keyboard.update();         
-	if ( keyboard.pressed("left") ) 
-		angle += 0.01;               
-	if ( keyboard.pressed("right") )
-		angle -= 0.01;
 	if ( keyboard.pressed("home") )  
-		speed += 1.0;
+		speed = 1.0;
+	if ( keyboard.pressed("left") ) {
+		if(speed == 1)
+			angle += 0.005;           
+		else if(speed > 1)
+			angle += 0.01;
+	}			
+	if ( keyboard.pressed("right") ){
+		if(speed == 1)
+			angle -= 0.005;           
+		else if(speed > 1)
+			angle -= 0.01;
+	}
 	if ( keyboard.pressed("space") )  
 		speed = 0;		
 	if ( keyboard.pressed("up") )  
