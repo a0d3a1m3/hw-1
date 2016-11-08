@@ -16,26 +16,37 @@
 
 </style>
 </head>
-<title>hw2</title>
+<title>hw3</title>
 <body>
-<div id="info">HW2</div>
+<div id="info">HW3</div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r70/three.min.js"></script>
 <script src="https://jyunming-chen.github.io/tutsplus/js/KeyboardState.js"></script>
+<audio id="collisionsound" style="display:none">
+<source src="https://jyunming-chen.github.io/tutsplus/sounds/collision3.wav" type='audio/wav'>
+</audio>
+<audio id="soundtrack" autoplay loop style="display:none">
+<source src="bgm.mp3" type='audio/mp3'>
+</audio>
 <script>
 
 var camera, scene, renderer;
-var satellite, angle = 0;
-var mousePoint;
-var mouse = new THREE.Vector2();
-//var stats;
+var collisionSound;
 var pos, vel, force;
 var clock = new THREE.Clock();
+var keyboard = new KeyboardState();
 var stArray = [];
 var baseS = 0;
 var counter = 0;
-var keyboard = new KeyboardState();;
+
 init();
 animate();
+function height (x) {
+	if (x < 25)
+		return -30;
+	else // x > 0
+		return 0;
+}
+
 function setUpStArray() {
 	for (var i = 0; i < 3; i++) {
 		var row = [];
@@ -46,11 +57,13 @@ function setUpStArray() {
 }
 
 function init() {
+	collisionSound = document.getElementById ('collisionsound');
+	
 	renderer = new THREE.WebGLRenderer({
 	antialias: true
-});
+	});
 
-	pos = new THREE.Vector3(0, 0, 0);
+	pos = new THREE.Vector3(0, -30, 0);
 	vel = new THREE.Vector3(0, 0, 0);
 
 	renderer.setSize(window.innerWidth, window.innerHeight);
@@ -58,17 +71,10 @@ function init() {
 	document.body.appendChild(renderer.domElement);
 
 	scene = new THREE.Scene();
-	camera = new THREE.OrthographicCamera(-50, 50, 50, -50, -10, 100);
+	camera = new THREE.OrthographicCamera(-100, 100, 100, -100, -10, 100);
 	camera.position.z = 10;
 	scene.add(camera);
 
-
-	var ground = new THREE.Mesh(new THREE.PlaneGeometry(100, 50), new THREE.MeshBasicMaterial({color: 0xff0000}));
-	scene.add(ground);
-	ground.position.y = -25;
-
-	window.addEventListener('resize', onWindowResize, false);
-	//  window.addEventListener('mousedown', onDocumentMouseDown, false);
 	setUpStArray();
 
 	// loading texture from imgur.com
@@ -78,9 +84,9 @@ function init() {
 
 	// setting up texMat
 	var texMat = new THREE.MeshBasicMaterial({
-		map: texture,
-		transparent: true,  // cutout texture: set transparent: true
-		side: THREE.DoubleSide
+	map: texture,
+	transparent: true,  // cutout texture: set transparent: true
+	side: THREE.DoubleSide
 	});
 
 	var geometry = new THREE.Geometry();
@@ -106,6 +112,21 @@ function init() {
 
 	sprite = new THREE.Mesh(geometry, texMat);
 	scene.add(sprite);
+
+	var ground = new THREE.Mesh(new THREE.PlaneGeometry(200, 50), new THREE.MeshBasicMaterial({
+	color: 0xff0000
+	}));
+	scene.add(ground);
+	ground.position.y = -70;
+
+	var wall = new THREE.Mesh(new THREE.PlaneGeometry(100, 100), new THREE.MeshBasicMaterial({
+	color: 0xff0000
+	}));
+	scene.add(wall);
+	wall.position.x = 77;
+	wall.position.y = -60;
+	window.addEventListener('resize', onWindowResize, false);
+	//  window.addEventListener('mousedown', onDocumentMouseDown, false);
 }
 
 function onWindowResize() {
@@ -113,7 +134,6 @@ function onWindowResize() {
 	camera.updateProjectionMatrix();
 	renderer.setSize(window.innerWidth, window.innerHeight);
 }
-
 function spriteAnimate() {
 	var geometry = sprite.geometry;
 	var st0 = stArray[1][baseS];
@@ -128,73 +148,81 @@ function spriteAnimate() {
 
 	baseS = (baseS + 1) % 5;
 }
-
 function animate() {
+	counter++;
 	keyboard.update();
 	var dt = clock.getDelta();
-	counter++;
-
-	
-
 
 	// force: add gravity first
 	force = new THREE.Vector3(0, -90, 0);
-	if (pos.y <= 1) {    // if contact, add contact force
-		force.add(new THREE.Vector3(0, 90, 0));
-	}  
-/*	if ( keyboard.pressed("space") ){
-		alert (pos.y);
-		
-	}*/
-	if ( keyboard.pressed("left") && pos.y <= 1 ){
-		vel.x = -20;	
-	}
 
-	if ( keyboard.up("left") && pos.y <= 1 ){
-		vel.x = 0;
-	}	
-	
-	if ( keyboard.pressed("right") && pos.y <= 1 ){
-		if (counter % 4 === 0)
-			spriteAnimate();
-		vel.x = 20;
-	}
-	if ( keyboard.up("right") && pos.y <= 1 ){
-		vel.x = 0;
-	}
-		
-	if ( keyboard.pressed("up") && pos.y <= 1 ){
-		vel.y = 100;
-	}
-	
-	if( sprite.position.x >= 122 ){
-		vel.x = -10;
-	}
-	if( sprite.position.x <= -122 ){
-		vel.x = 10;
-	}
-	// move camera
-	if(sprite.position.x - camera.position.x >= 30)
-		camera.position.x += 0.3;
-	if(camera.position.x - sprite.position.x >= 30)
-		camera.position.x -= 0.3;
 	// then do Euler's
 	vel.add(force.clone().multiplyScalar(dt));
 	pos.add(vel.clone().multiplyScalar(dt));
 	sprite.position.copy(pos);
 
+	// bounce back
+	if (pos.y <= height (pos.x)) {
+		pos.y = height(pos.x);
+		vel.y *= -.3;
+	}
+	// keyboard controls
+	if ( keyboard.pressed("left") && pos.y <= height(pos.x) ){
+		if (counter % 4 === 0)
+			spriteAnimate();
+		sprite.rotation.y = Math.PI;
+		vel.x = -20;
+		vel.x *= 0.8;
+	}			
+	
+	if ( keyboard.pressed("right") && pos.y <= height(pos.x) ){
+		if (counter % 4 === 0)
+			spriteAnimate();
+		sprite.rotation.y = 2 * Math.PI;
+		vel.x = 20;
+		vel.x *= 0.8;
+	}
+	
+	if(vel.x < -1){
+		vel.x *= 0.99
+	}
+	if(vel.x > 1){
+		vel.x *= 0.99
+	}
+	
+	if(vel.x > -1 && vel.x < 1)
+		vel.x = 0;
+		
+	if ( keyboard.pressed("up") && pos.y <= height(pos.x) ){
+		vel.y = 100;
+		vel.y *= 0.8;
+		collisionSound.play();
+	}
+	// add contact force
+	if (pos.y <= 10 + height(pos.x)) {    // if contact, add contact force
+		force.add(new THREE.Vector3(0, 90, 0));
 
-	if ( pos.y <= 0 ) {
-		//pos.y = 0;
-		vel.y *= -.8;
-	} 
-		        
+	// determine whether it is possible to make the horizontal move
+	var sign;
+	if(vel.x > 0)
+		sign =  1;
+	else
+		sign = -1;
+	if(height(pos.x) < height(pos.x + 0.3*sign))
+		vel.x = 0; 
+	}  
+	
+	//wall
+	if(pos.x >=  100)
+		pos.x =  100;
+	if(pos.x <= -100)
+		pos.x = -100;
 	requestAnimationFrame(animate);
 	render();
 }
 
 function render() {
-	renderer.render(scene, camera);
+  renderer.render(scene, camera);
 }
 
 </script>
