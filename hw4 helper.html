@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+	#info {
+		position: absolute;
+		top: 0px;
+		width: 100%;
+		padding: 10px;
+		text-align: center;
+		color: #ffff00
+	}
+	body {
+		overflow:hidden
+	}
+
+</style>
+</head>
+<title>hw4</title>
+<body>
+<div id="info">hw4 helper</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r70/three.min.js"></script>
+<script src="https://threejs.org/examples/js/controls/OrbitControls.js"></script>
+<script src="https://dl.dropboxusercontent.com/u/3587259/Code/Threejs/OrbitControls.js"></script>
+<script>
+
+var camera, scene, renderer, controls;
+var cylinder;
+//force
+var pos, vel, force;
+var pos2, vel2, force2;
+var pos3, vel3, force3;
+var angle = 0;
+var angle2 = 0;
+var angle3 = 0;
+//target
+var tx, ty, tz;
+var de = 0;
+//
+var mass = 1;
+var clock = new THREE.Clock();
+
+//target
+var target = new THREE.Vector3();
+var maxSpeed = 20;
+var maxForce = 20;
+var puck;
+
+//pick & place
+var raycaster;
+var mouse = new THREE.Vector2();
+var pickables = [];
+var plane;
+
+init();
+animate();
+
+function init() {
+	scene = new THREE.Scene();
+
+	camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 1, 1000);
+	camera.position.z = 500;
+	scene.add(camera);
+
+	// add my cylinder
+	var geometry = new THREE.BoxGeometry(15, 2, 5);
+	var material = new THREE.MeshNormalMaterial();
+	cylinder = new THREE.Mesh(geometry, material);
+	scene.add(cylinder);
+	
+	// add my cylinder2
+	cylinder2 = new THREE.Mesh(geometry, material);
+	scene.add(cylinder2);
+	
+	// add my cylinder3
+	cylinder3 = new THREE.Mesh(geometry, material);
+	scene.add(cylinder3);
+	
+	//add plane
+	plane = new THREE.Mesh (new THREE.PlaneGeometry(200,200), new THREE.MeshBasicMaterial({visible:false}));
+	scene.add (plane);
+	plane.rotation.x = -Math.PI/2;
+	pickables = [plane];
+
+	//add puck
+	puck = new THREE.Mesh (new THREE.CylinderGeometry (10,10,2,20), new THREE.MeshNormalMaterial());
+	scene.add (puck);
+
+	var gridXZ = new THREE.GridHelper(100, 10);
+	gridXZ.setColors(new THREE.Color(0xff0000), new THREE.Color(0xffffff));
+	scene.add(gridXZ);
+
+	renderer = new THREE.WebGLRenderer();
+	renderer.setSize(window.innerWidth, window.innerHeight);
+	renderer.setClearColor(0x888888);
+
+	controls = new THREE.OrbitControls(camera, renderer.domElement);
+
+	//////////////////////
+	var maxNum = 100;  
+	var minNum = -100;  
+	var n1 = Math.floor(Math.random() * (maxNum - minNum + 1)) + minNum;
+	var m1 = Math.floor(Math.random() * (maxNum - minNum + 1)) + minNum;
+	var n2 = Math.floor(Math.random() * (maxNum - minNum + 1)) + minNum;
+	var m2 = Math.floor(Math.random() * (maxNum - minNum + 1)) + minNum;
+	var n3 = Math.floor(Math.random() * (maxNum - minNum + 1)) + minNum;
+	var m3 = Math.floor(Math.random() * (maxNum - minNum + 1)) + minNum;
+	
+	pos = new THREE.Vector3(n1,0,m1);
+	vel = new THREE.Vector3();	
+	force = new THREE.Vector3();
+
+	pos2 = new THREE.Vector3(n2,0,m2);
+	vel2 = new THREE.Vector3();
+	force2 = new THREE.Vector3();
+	
+	pos3 = new THREE.Vector3(n3,0,m3);
+	vel3 = new THREE.Vector3();
+	force3 = new THREE.Vector3();
+	
+	raycaster = new THREE.Raycaster();
+	document.addEventListener('mousedown', onDocumentMouseDown, false);
+	
+	document.body.appendChild(renderer.domElement);
+
+}
+
+function onDocumentMouseDown(event) {
+
+	event.preventDefault();
+	mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+	mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+	// find intersections
+	raycaster.setFromCamera(mouse, camera);
+	var intersects = raycaster.intersectObjects(pickables);
+	if (intersects.length > 0) {
+		puck.position.copy (intersects[0].point);
+		tx = puck.position.x;
+		ty = puck.position.y;
+		tz = puck.position.z;
+	}
+	
+		
+
+}
+
+function computeForce() {
+	//1
+	force = target.clone().sub(pos).setLength(maxSpeed).sub(vel);
+	var dt = clock.getDelta();  // delta-time
+
+	vectorClamp (force, maxForce);
+	vel.add (force.clone().multiplyScalar (dt/mass));
+	vectorClamp (vel, maxSpeed);
+	pos.add (vel.clone().multiplyScalar (dt));
+	
+	//2
+	force2 = target.clone().sub(pos2).setLength(maxSpeed).sub(vel2);
+
+	vectorClamp (force2, maxForce);
+	vel2.add (force2.clone().multiplyScalar (dt/mass));
+	vectorClamp (vel2, maxSpeed);
+	pos2.add (vel2.clone().multiplyScalar (dt));
+	
+	//3
+	force3 = target.clone().sub(pos3).setLength(maxSpeed).sub(vel3);
+
+	vectorClamp (force3, maxForce);
+	vel3.add (force3.clone().multiplyScalar (dt/mass));
+	vectorClamp (vel3, maxSpeed);
+	pos3.add (vel3.clone().multiplyScalar (dt));
+}
+
+function vectorClamp (v, vMax) {
+	if (v.length() > vMax)
+		v.setLength (vMax);
+}
+	
+function animate() {
+	// copy to cylinder
+	computeForce();
+	if (vel.length() > 0.001) {
+		angle = Math.atan2 (-vel.z, vel.x);
+	}
+	cylinder.position.copy (pos);
+	cylinder.rotation.y = angle;
+	
+	// copy to cylinder2
+	if (vel2.length() > 0.001) {
+		angle2 = Math.atan2 (-vel2.z, vel2.x);
+	}	
+	cylinder2.position.copy (pos2);
+	cylinder2.rotation.y = angle2;
+	
+	// copy to cylinder3
+	if (vel3.length() > 0.001) {
+		angle3 = Math.atan2 (-vel3.z, vel3.x);
+	}	
+	cylinder3.position.copy (pos3);
+	cylinder3.rotation.y = angle3;
+	
+	target.set (tx, ty, tz);
+
+	controls.update();
+	requestAnimationFrame(animate);
+	render();
+}
+
+function render() {
+	renderer.render(scene, camera);
+}
+
+// important to add this 
+// in jsfiddle!
+window.focus();
+
+</script>
+</body>
+</html>
