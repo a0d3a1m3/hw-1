@@ -93,7 +93,7 @@ var Agent = function(mesh, initPos) {
 		//console.log (tmp.dot(this.vel));
 
 		if (tmp2.dot(this.vel) > 0) {
-			if (tmpProj2.clone().sub(tmp2).length() < obRad + 3) {
+			if (tmpProj2.clone().sub(tmp2).length() < obRad2 + 3) {
 				if (tmpProj2.length() < 5 *this.vel.length()) {
 					console.log ('block & close');
 					this.force.add (tmpProj2.clone().sub(tmp2).multiplyScalar(2));    	
@@ -107,7 +107,7 @@ var Agent = function(mesh, initPos) {
 		//console.log (tmp.dot(this.vel));
 
 		if (tmp3.dot(this.vel) > 0) {
-			if (tmpProj3.clone().sub(tmp3).length() < obRad + 3) {
+			if (tmpProj3.clone().sub(tmp3).length() < obRad3 + 3) {
 				if (tmpProj3.length() < 5 *this.vel.length()) {
 					console.log ('block & close');
 					this.force.add (tmpProj3.clone().sub(tmp3).multiplyScalar(2));    	
